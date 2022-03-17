@@ -26,8 +26,8 @@ This is the Addressing you will use when creating a Tag.
 
 | Function Code | Function Name | Address Range | Data Types |
 |----------|----------|----------|----------|
-| 1 | Read Coil | 000001 - 065536 | Boolean |
-| 2 | Read Discrete Inputs | 10001 - 165536 | Boolean |
+| 1 | Read Coil | 000001 - 065536 | Bool |
+| 2 | Read Discrete Inputs | 10001 - 165536 | Bool |
 | 3 | Read Holding Registers | 40001 - 465536 | Short - Long - Float |
 | 4 | Read Input Registers | 30001 - 365536 | Short - Long - Float |
 
