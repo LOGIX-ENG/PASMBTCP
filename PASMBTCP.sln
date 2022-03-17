@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PASMBTCP", "PASMBTCP\PASMBTCP.csproj", "{14CC0AAC-A55E-4DF1-AD20-77202B2EFBB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleUI", "ExampleUI\ExampleUI.csproj", "{CCEA5530-2452-451D-A375-5E9AA1554011}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14CC0AAC-A55E-4DF1-AD20-77202B2EFBB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14CC0AAC-A55E-4DF1-AD20-77202B2EFBB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14CC0AAC-A55E-4DF1-AD20-77202B2EFBB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14CC0AAC-A55E-4DF1-AD20-77202B2EFBB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCEA5530-2452-451D-A375-5E9AA1554011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCEA5530-2452-451D-A375-5E9AA1554011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCEA5530-2452-451D-A375-5E9AA1554011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCEA5530-2452-451D-A375-5E9AA1554011}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B3CE36C-DEE0-4237-9C54-B2DF7F8DDC4A}
+	EndGlobalSection
+EndGlobal
