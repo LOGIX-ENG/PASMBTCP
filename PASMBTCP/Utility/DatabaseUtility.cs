@@ -50,7 +50,7 @@ namespace PASMBTCP.Utility
             try
             {
                 CreateTagTable.Append(@"CREATE TABLE IF NOT EXISTS ERROR(");
-                CreateTagTable.Append("Id INTEGER NOT NULL UNIQUE, ");;
+                CreateTagTable.Append("Id INTEGER NOT NULL UNIQUE, ");
                 CreateTagTable.Append("TimeOfException VARCHAR, ");
                 CreateTagTable.Append("ExceptionMessage VARCHAR, ");
                 CreateTagTable.Append("PRIMARY KEY(Id AUTOINCREMENT));");

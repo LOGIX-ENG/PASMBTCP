@@ -21,7 +21,7 @@ namespace PASMBTCP.SQLite
         private static GeneralExceptionEventArgs _generalEventArgs = new();
         public static event EventHandler<DatabaseExceptionEventArgs>? RaiseSQLiteExceptionEvent;
         public static event EventHandler<GeneralExceptionEventArgs>? RaiseGeneralExceptionEvent;
-        
+
 
         /// <summary>
         /// Constructor
@@ -392,13 +392,13 @@ namespace PASMBTCP.SQLite
             try
             {
                 properties.ForEach(prop =>
-                    {
+                {
 
-                        if (prop.Equals("Name"))
-                        {
-                            deleteQuery.Append($"{prop} = @{prop},");
-                        }
-                    });
+                    if (prop.Equals("Name"))
+                    {
+                        deleteQuery.Append($"{prop} = @{prop},");
+                    }
+                });
 
                 deleteQuery.Remove(deleteQuery.Length - 1, 1);
                 deleteQuery.Append(" WHERE Name = @Name");
