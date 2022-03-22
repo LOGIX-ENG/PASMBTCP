@@ -8,6 +8,6 @@ using PASMBTCP.Tag;
 //input register numbers span from 300001 to 365536,
 //holding register numbers span from 400001 to 465536.
 
-await Device.CreateClient("Client", "107.84.202.5", 2502, 60000, 60000);
+await Device.CreateClient("Client", "192.168.1.1", 2502, 60000, 60000);
 await DataTagCreator.CreateTag("Example", "400001", "Float", "Client");
 await PollingEngine.PollAllAsync();
