@@ -49,22 +49,20 @@ await Device.CreateClient("Client", "192.168.1.1", 2502, 60000, 60000);
 await DataTagCreator.CreateTag("Example", "400001", "Float", "Client");
 
 /// <summary>
-/// You Can Choose To Poll All Devices You Created And All The Tags For Each Device
-/// Or You Can Poll A Single Device (All Tags)
-/// Or You Can Poll A Single Tag In A Device
+/// This Option Polls Every Client And Every Tag
 /// </summary>
 await PollingEngine.PollAllDevicesAsync();
 
 /// <summary>
 /// Name The Client You Wish To Poll
 /// Must Be Same As (String)Client You Created
+/// This Option Polls All Tags Associated With The Client
 /// </summary>
 await PollingEngine.PollSingleDeviceAsync("Client");
 
 /// <summary>
-/// Name The Client
-/// Name The Tag
-/// You Wish To Poll
+/// Name The Client You Wish To Poll
+/// Name The Tag You Wish To Poll
 /// Must Be Same As (String)Client And (String)Tag You Created
 /// </summary>
 await PollingEngine.PollSingleTagAsync("Client", "Example");
