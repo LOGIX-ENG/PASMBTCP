@@ -36,7 +36,7 @@ namespace PASMBTCP.IO
         public static int Port { get; set; } = 502; // Default Value.
         public static int ConnectTimeout { get; set; } = 60000; // Default Value.
         public static int ReadWriteTimeout { get; set; } = 60000; // Default Value.
-        public static Client Client { get; set; }
+        public static Client? Client { get; set; }
 
         /// <summary>
         /// Formats Date Time With Culture Info
@@ -125,7 +125,7 @@ namespace PASMBTCP.IO
                     {
                         Memory<byte> buffer = new(_internalBuffer);
                         int len = await SocketTaskExtensions.ReceiveAsync(_socket, buffer, SocketFlags.None, cts.Token);
-                        return buffer.Slice(0, len).ToArray();
+                        return buffer[..len].ToArray();
                     }
                 }
                 catch (Exception ex)

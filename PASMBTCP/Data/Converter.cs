@@ -4,6 +4,11 @@ using System.Net;
 
 namespace PASMBTCP.Tag
 {
+    /// <summary>
+    /// Conversion Class.
+    /// To Convert Bytes Into Specific Data Types
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class Converter<T> where T : DataTag
     {
         /// <summary>

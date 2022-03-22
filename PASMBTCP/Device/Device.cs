@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace PASMBTCP.Device
 {
+
     public static class Device
     {
         private static readonly Client _client = new();

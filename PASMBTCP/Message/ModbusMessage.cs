@@ -3,9 +3,6 @@ using System.Net;
 
 namespace PASMBTCP.Message
 {
-    /// <summary>
-    /// Concrete Implementor Class
-    /// </summary>
     public class ModbusMessage : IModbusMessage
     {
         /// <summary>

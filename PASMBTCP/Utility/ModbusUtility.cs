@@ -33,7 +33,11 @@
         // Modbus Exception Code Offset
         public const byte ExceptionCodeOffset = 128;
 
-
+        /// <summary>
+        /// Used To Track Data Type
+        /// Is Placed In The Transaction ID Section Of The MBAP
+        /// Used To Convert Data Into Specific Type
+        /// </summary>
         public const short BoolCode = 1;
         public const short ShortCode = 2;
         public const short FloatCode = 3;

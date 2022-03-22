@@ -9,9 +9,6 @@ using System.Reflection;
 using System.Text;
 namespace PASMBTCP.SQLite
 {
-    /// <summary>
-    /// Modbus Database Class From Database Repository
-    /// </summary>
     public class ModbusDatabase : DBOBase<DataTag>
     {
         /// <summary>
@@ -50,18 +47,16 @@ namespace PASMBTCP.SQLite
         /// <returns></returns>
         public override async Task DeleteAsync(DataTag Entity)
         {
-            using (IDbConnection connection = SqlConnection())
+            using IDbConnection connection = SqlConnection();
+            string command = DatabaseUtility.DeleteTagFromTable(Entity.Name);
+            try
             {
-                string command = DatabaseUtility.DeleteTagFromTable(Entity.Name);
-                try
-                {
-                    await connection.ExecuteAsync(command, Entity);
-                }
-                catch (SqliteException ex)
-                {
-                    _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                    RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
-                }
+                await connection.ExecuteAsync(command, Entity);
+            }
+            catch (SqliteException ex)
+            {
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
             }
         }
 
@@ -71,21 +66,40 @@ namespace PASMBTCP.SQLite
         /// <returns>IEnumerable of DataTag</returns>
         public override async Task<IEnumerable<DataTag>> GetAllAsync(string input)
         {
-            using (IDbConnection connection = SqlConnection())
+            using IDbConnection connection = SqlConnection();
+            try
             {
-                try
-                {
-                    string sqlQuery = $@"SELECT * FROM {input}_Tag";
-                    // IEnumerable<Client> result = await connection.QueryAsync<Client>(sqlQuery, new DynamicParameters());
-                    return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters()); // result.AsParallel<Client>();
-                }
-                catch (SqliteException ex)
-                {
+                string sqlQuery = $@"SELECT * FROM {input}_Tag";
+                // IEnumerable<Client> result = await connection.QueryAsync<Client>(sqlQuery, new DynamicParameters());
+                return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters()); // result.AsParallel<Client>();
+            }
+            catch (SqliteException ex)
+            {
 
-                    _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                    RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
-                    return Enumerable.Empty<DataTag>();
-                }
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+                return Enumerable.Empty<DataTag>();
+            }
+        }
+
+        /// <summary>
+        /// Gets Single In The Database
+        /// </summary>
+        /// <returns>IEnumerable of Client</returns>
+        public async Task<IEnumerable<DataTag>> GetSingleAsync(string deviceName, string tagName)
+        {
+            using IDbConnection connection = SqlConnection();
+            try
+            {
+                string sqlQuery = $@"SELECT {tagName} FROM {deviceName}_Tag";
+                return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters());
+            }
+            catch (SqliteException ex)
+            {
+
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+                return Enumerable.Empty<DataTag>();
             }
         }
 
@@ -96,35 +110,33 @@ namespace PASMBTCP.SQLite
         /// <returns>Task</returns>
         public override async Task InsertMultipleAsync(List<DataTag> Entity)
         {
-            using (SqliteConnection connection = SqlConnection())
+            using SqliteConnection connection = SqlConnection();
+            await connection.OpenAsync();
+
+            IDbTransaction transaction = await connection.BeginTransactionAsync();
+
+            //string command = DatabaseUtility.InsertTagIntoTable();
+
+            try
             {
-                await connection.OpenAsync();
-
-                IDbTransaction transaction = await connection.BeginTransactionAsync();
-
-                //string command = DatabaseUtility.InsertTagIntoTable();
-
-                try
+                foreach (DataTag data in Entity)
                 {
-                    foreach (DataTag data in Entity)
-                    {
-                        string command = DatabaseUtility.InsertTagIntoTable(data.ClientName);
-                        await connection.ExecuteAsync(command, data);
-                    }
+                    string command = DatabaseUtility.InsertTagIntoTable(data.ClientName);
+                    await connection.ExecuteAsync(command, data);
                 }
-                catch (SqliteException ex)
-                {
-                    _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                    transaction.Rollback();
-                    await connection.CloseAsync();
-                    await connection.DisposeAsync();
-                    RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
-                }
-
-                transaction.Commit();
+            }
+            catch (SqliteException ex)
+            {
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                transaction.Rollback();
                 await connection.CloseAsync();
                 await connection.DisposeAsync();
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
             }
+
+            transaction.Commit();
+            await connection.CloseAsync();
+            await connection.DisposeAsync();
         }
 
         /// <summary>
@@ -134,27 +146,25 @@ namespace PASMBTCP.SQLite
         /// <returns>Task</returns>
         public override async Task InsertSingleAsync(DataTag Entity)
         {
-            using (IDbConnection connection = SqlConnection())
+            using IDbConnection connection = SqlConnection();
+            try
             {
-                try
+
+                string command = DatabaseUtility.InsertTagIntoTable(Entity.ClientName);
+                await connection.ExecuteAsync(command, Entity);
+            }
+            catch (SqliteException ex)
+            {
+
+                if (ex.Message.Contains($"no such table: {Entity.ClientName}_Tag"))
                 {
-
-                    string command = DatabaseUtility.InsertTagIntoTable(Entity.ClientName);
-                    await connection.ExecuteAsync(command, Entity);
+                    _ = await connection.ExecuteAsync(DatabaseUtility.ModbusTagTableCreator(Entity.ClientName), Entity);
+                    await InsertSingleAsync(Entity);
+                    return;
                 }
-                catch (SqliteException ex)
-                {
 
-                    if (ex.Message.Contains($"no such table: {Entity.ClientName}_Tag"))
-                    {
-                        _ = await connection.ExecuteAsync(DatabaseUtility.ModbusTagTableCreator(Entity.ClientName), Entity);
-                        await InsertSingleAsync(Entity);
-                        return;
-                    }
-
-                    _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                    RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
-                }
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
             }
         }
 
@@ -165,21 +175,19 @@ namespace PASMBTCP.SQLite
         /// <returns></returns>
         public async Task InsertSingleErrorAsync(ErrorTag errorTag)
         {
-            using (IDbConnection connection = SqlConnection())
+            using IDbConnection connection = SqlConnection();
+            try
             {
-                try
-                {
 
-                    string command = DatabaseUtility.InsertErrorIntoTable();
-                    await connection.ExecuteAsync(command, errorTag);
-                }
-                catch (SqliteException ex)
-                {
+                string command = DatabaseUtility.InsertErrorIntoTable();
+                await connection.ExecuteAsync(command, errorTag);
+            }
+            catch (SqliteException ex)
+            {
 
-                    if (ex.Message.Contains($"no such table: Error"))
-                    {
-                        _ = await connection.ExecuteAsync(DatabaseUtility.ModbusErrorTableCreator(), errorTag);
-                    }
+                if (ex.Message.Contains($"no such table: Error"))
+                {
+                    _ = await connection.ExecuteAsync(DatabaseUtility.ModbusErrorTableCreator(), errorTag);
                 }
             }
         }
@@ -202,42 +210,40 @@ namespace PASMBTCP.SQLite
         /// <returns></returns>
         public override async Task UpdateMultipleAsync(List<DataTag> Entity)
         {
-            using (SqliteConnection connection = SqlConnection())
-            {
+            using SqliteConnection connection = SqlConnection();
 
+            try
+            {
+                await connection.OpenAsync();
+
+                IDbTransaction transaction = await connection.BeginTransactionAsync();
+
+
+                foreach (DataTag data in Entity)
+                {
+                    string command = DatabaseUtility.UpdateTagTable(data.ClientName);
+                    await connection.ExecuteAsync(command, data);
+                }
                 try
                 {
-                    await connection.OpenAsync();
-
-                    IDbTransaction transaction = await connection.BeginTransactionAsync();
-
-
-                    foreach (DataTag data in Entity)
-                    {
-                        string command = DatabaseUtility.UpdateTagTable(data.ClientName);
-                        await connection.ExecuteAsync(command, data);
-                    }
-                    try
-                    {
-                        transaction.Commit();
-                    }
-                    catch (Exception e)
-                    {
-                        _generalEventArgs = new(GetDateTime(), new Exception(e.Message, e.InnerException).ToString());
-                        RaiseGeneralExceptionEvent?.Invoke(this, _generalEventArgs);
-                    }
-                    await connection.CloseAsync();
-                }
-                catch (SqliteException ex)
-                {
-                    _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                    RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+                    transaction.Commit();
                 }
                 catch (Exception e)
                 {
                     _generalEventArgs = new(GetDateTime(), new Exception(e.Message, e.InnerException).ToString());
                     RaiseGeneralExceptionEvent?.Invoke(this, _generalEventArgs);
                 }
+                await connection.CloseAsync();
+            }
+            catch (SqliteException ex)
+            {
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+            }
+            catch (Exception e)
+            {
+                _generalEventArgs = new(GetDateTime(), new Exception(e.Message, e.InnerException).ToString());
+                RaiseGeneralExceptionEvent?.Invoke(this, _generalEventArgs);
             }
         }
 
@@ -248,19 +254,17 @@ namespace PASMBTCP.SQLite
         /// <returns></returns>
         public override async Task UpdateSingleAsync(DataTag Entity)
         {
-            using (IDbConnection connection = SqlConnection())
+            using IDbConnection connection = SqlConnection();
+            try
             {
-                try
-                {
 
-                    string command = DatabaseUtility.UpdateTagTable(Entity.ClientName);
-                    await connection.ExecuteAsync(command, Entity);
-                }
-                catch (SqliteException ex)
-                {
-                    _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                    RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
-                }
+                string command = DatabaseUtility.UpdateTagTable(Entity.ClientName);
+                await connection.ExecuteAsync(command, Entity);
+            }
+            catch (SqliteException ex)
+            {
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
             }
         }
 

@@ -8,8 +8,8 @@
 
         public ModbusExceptionsEventArgs(string dateTime, string exception)
         {
-            DateTime = dateTime; // ?? throw new ArgumentNullException(dateTime);
-            Exception = exception; // ?? throw new ArgumentNullException(dateTime);
+            DateTime = dateTime;
+            Exception = exception;
         }
 
         public string? DateTime { get; set; } = null;

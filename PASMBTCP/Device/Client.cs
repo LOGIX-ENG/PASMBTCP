@@ -8,6 +8,7 @@ namespace PASMBTCP.Device
 {
     public class Client
     {
+        // Properties
         public string? Name { get; set; }
         public string? IPAddress { get; set; }
         public int Port { get; set; }

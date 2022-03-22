@@ -29,7 +29,7 @@ namespace PASMBTCP.Polling
         /// Poll All Servers
         /// </summary>
         /// <returns></returns>
-        public static async Task PollAllAsync()
+        public static async Task PollAllDevicesAsync()
         {
             // Raise The Exeption If Errors Occur
             ModbusDatabase.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
@@ -49,15 +49,14 @@ namespace PASMBTCP.Polling
             // Iterate Over Each Client
             foreach(Client client in clients)
             {
-                TCPAdapter.IpAddress = client.IPAddress;
-                TCPAdapter.Port = client.Port;
-                TCPAdapter.ConnectTimeout = client.ConnectTimeout;
-                TCPAdapter.ReadWriteTimeout = client.ReadWriteTimeout;
-                
+                // Initialize The Client
+                TCPAdapter.Client = client;
+
+                // Await All Tags For Specific Client
+                IEnumerable<DataTag> dataTags = await _mbDatabase.GetAllAsync(client.Name);
+
                 // Await Connection To Device
                 await _tcpAdapter.ConnectAsync();
-                
-                IEnumerable<DataTag> dataTags = await _mbDatabase.GetAllAsync(client.Name);
                 
                 // Iterate Over Each Tag
                 foreach(DataTag tag in dataTags)
@@ -68,6 +67,94 @@ namespace PASMBTCP.Polling
                 // On Complete Update All Tags In Database
                 await _mbDatabase.UpdateMultipleAsync(value);
             }
+
+            // Disconnect and Dispose Of The Socket Resource
+            TCPAdapter.Disconnect();
+            _tcpAdapter.Dispose();
+        }
+
+        /// <summary>
+        /// Polls All Tags In A Single Device
+        /// </summary>
+        /// <param name="device"></param>
+        /// <returns></returns>
+        public static async Task PollSingleDeviceAsync(string device)
+        {
+            // Raise The Exeption If Errors Occur
+            ModbusDatabase.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
+            ModbusDatabase.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            ClientDatabase.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
+            ClientDatabase.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
+
+            // Get All Clients
+            IEnumerable<Client> client = await _clientDatabase.GetSingleAsync(device);
+
+            // Raise The Exception If Connection Fails
+            TCPAdapter.RaiseGeneralExceptionEvent += SocketAdapter_RaiseGeneralExceptionEvent;
+
+            // List of Polled Tags
+            List<DataTag> value = new();
+
+            // Initialize The Client
+            TCPAdapter.Client = client.ElementAt(0);
+
+            // Await All Tags For Specific Client
+            IEnumerable<DataTag> dataTags = await _mbDatabase.GetAllAsync(client.ElementAt(0).Name);
+
+            // Await Connection To Device
+            await _tcpAdapter.ConnectAsync();
+
+            // Iterate Over Each Tag
+            foreach (DataTag tag in dataTags)
+            {
+                DataTag tagsWithData = await RequestAsync<DataTag>(tag);
+                value.Add(tagsWithData);
+            }
+            
+            // On Complete Update All Tags In Database
+            await _mbDatabase.UpdateMultipleAsync(value);
+
+            // Disconnect and Dispose Of The Socket Resource
+            TCPAdapter.Disconnect();
+            _tcpAdapter.Dispose();
+        }
+
+        /// <summary>
+        /// Polls One Tag In A Specific Device
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="tagName"></param>
+        /// <returns></returns>
+        public static async Task PollSingleTagAsync(string deviceName, string tagName)
+        {
+            // Raise The Exeption If Errors Occur
+            ModbusDatabase.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
+            ModbusDatabase.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            ClientDatabase.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
+            ClientDatabase.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
+
+            // Get All Clients
+            IEnumerable<Client> client = await _clientDatabase.GetSingleAsync(deviceName);
+
+            // Raise The Exception If Connection Fails
+            TCPAdapter.RaiseGeneralExceptionEvent += SocketAdapter_RaiseGeneralExceptionEvent;
+
+            // List of Polled Tags
+            List<DataTag> value = new();
+
+            // Initialize The Client
+            TCPAdapter.Client = client.ElementAt(0);
+
+            // Await All Tags For Specific Client
+            IEnumerable<DataTag> dataTag = await _mbDatabase.GetSingleAsync(deviceName, tagName);
+
+            // Await Connection To Device
+            await _tcpAdapter.ConnectAsync();
+
+            DataTag tag = await RequestAsync<DataTag>(dataTag.ElementAt(0));
+
+            // On Complete Update All Tags In Database
+            await _mbDatabase.UpdateSingleAsync(tag);
 
             // Disconnect and Dispose Of The Socket Resource
             TCPAdapter.Disconnect();

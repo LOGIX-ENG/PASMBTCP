@@ -2,9 +2,6 @@
 
 namespace PASMBTCP.Message
 {
-    /// <summary>
-    /// Refined Abstraction
-    /// </summary>
     public class SlaveException : ModbusMessage
     {
         /// <summary>
