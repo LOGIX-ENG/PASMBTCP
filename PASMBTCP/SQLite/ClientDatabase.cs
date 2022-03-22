@@ -37,7 +37,7 @@ namespace PASMBTCP.SQLite
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
-        public override async Task DeleteAsync(Client Entity)
+        public override async Task DeleteSingleAsync(Client Entity)
         {
             using IDbConnection connection = SqlConnection();
             string command = DatabaseUtility.DeleteClientFromTable(Entity.Name);

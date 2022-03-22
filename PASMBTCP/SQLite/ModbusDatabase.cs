@@ -45,7 +45,7 @@ namespace PASMBTCP.SQLite
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
-        public override async Task DeleteAsync(DataTag Entity)
+        public override async Task DeleteSingleAsync(DataTag Entity)
         {
             using IDbConnection connection = SqlConnection();
             string command = DatabaseUtility.DeleteTagFromTable(Entity.Name);

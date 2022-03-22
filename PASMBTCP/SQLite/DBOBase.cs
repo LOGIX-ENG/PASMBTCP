@@ -10,7 +10,7 @@ namespace PASMBTCP.SQLite
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
-        public abstract Task DeleteAsync(T Entity);
+        public abstract Task DeleteSingleAsync(T Entity);
 
         /// <summary>
         /// Get All Rows
