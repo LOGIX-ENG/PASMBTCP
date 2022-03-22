@@ -11,9 +11,7 @@ namespace PASMBTCP.Tag
         public byte[] ModbusResponse { get; set; } = Array.Empty<byte>();
         public string? Name { get; set; } = null;
         public ushort RegisterAddress { get; set; }
-        public byte UnitId { get; set; }
         public string? Value { get; set; } = null;
-        public string? TimeOfException { get; set; } = null;
-        public string? ExceptionMessage { get; set; } = null;
+        public string? ClientName { get; set; } = null;
     }
 }

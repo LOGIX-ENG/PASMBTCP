@@ -5,8 +5,8 @@ namespace PASMBTCP.SQLite
 {
     public abstract class DBOBase<T> : IDBORepository<T> where T : class
     {
-        public abstract Task DeleteRowAsync(T Entity);
-        public abstract Task<IEnumerable<T>> GetAllAsync();
+        public abstract Task DeleteAsync(T Entity);
+        public abstract Task<IEnumerable<T>> GetAllAsync(string input);
         public abstract IEnumerable<PropertyInfo> GetProperties();
         public abstract Task InsertMultipleAsync(List<T> Entity);
         public abstract Task InsertSingleAsync(T Entity);

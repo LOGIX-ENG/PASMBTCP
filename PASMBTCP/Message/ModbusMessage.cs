@@ -11,10 +11,8 @@ namespace PASMBTCP.Message
         /// <summary>
         /// Private Variables
         /// </summary>
-        private static short _transactionId = GetUniqueId();
-        private static int _transactionIdInternal = 0;
-        private static short _protocolId = ModbusUtility.ProtocolId;
-        private static short _lengthField = ModbusUtility.LengthField;
+        private static readonly short _protocolId = ModbusUtility.ProtocolId;
+        private static readonly short _lengthField = ModbusUtility.LengthField;
         private static int _internal = 0;
 
         /// <summary>
@@ -42,10 +40,8 @@ namespace PASMBTCP.Message
         /// <summary>
         /// Properties for a Modbus Message
         /// </summary>
-        public short TransactionId { get => _transactionId; set => _transactionId = value; }
-        public short ProtocolId { get => _protocolId; set => _protocolId = value; }
+        public short TransactionId { get; set; }
         public byte FunctionCode { get; set; }
-        public short LengthField { get => _lengthField; set => _lengthField = value; }
         public byte UnitId { get; set; }
         public ushort RegisterAddress { get; set; }
         public short Quantity { get; set; }
@@ -59,7 +55,7 @@ namespace PASMBTCP.Message
             get
             {
                 List<byte> mbap = new();
-                mbap.AddRange(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(_transactionId)));
+                mbap.AddRange(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(TransactionId)));
                 mbap.AddRange(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(_protocolId)));
                 mbap.AddRange(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(_lengthField)));
                 mbap.Add(UnitId);
@@ -95,15 +91,5 @@ namespace PASMBTCP.Message
             }
         }
 
-        /// <summary>
-        /// Get a unique Transatcion ID
-        /// </summary>
-        /// <returns>Transaciton ID</returns>
-        public static short GetUniqueId()
-        {
-            int transactionIncremented = Interlocked.Increment(ref _transactionIdInternal);
-            _transactionId = Convert.ToInt16(transactionIncremented);
-            return _transactionId;
-        }
     }
 }

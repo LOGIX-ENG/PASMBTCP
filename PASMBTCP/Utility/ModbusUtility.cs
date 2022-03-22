@@ -33,5 +33,11 @@
         // Modbus Exception Code Offset
         public const byte ExceptionCodeOffset = 128;
 
+
+        public const short BoolCode = 1;
+        public const short ShortCode = 2;
+        public const short FloatCode = 3;
+        public const short LongCode = 4;
+
     }
 }

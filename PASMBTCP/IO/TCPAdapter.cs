@@ -1,29 +1,31 @@
-﻿using PASMBTCP.Events;
+﻿using PASMBTCP.Device;
+using PASMBTCP.Events;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 
 namespace PASMBTCP.IO
 {
-    public class SocketAdapter : IDisposable
+    public class TCPAdapter : IDisposable
     {
 
         /// <summary>
         /// Private Variables
         /// </summary>
         private static Socket? _socket = null;
-        private static ProtocolType protocolType;
-        private static SocketType socketType;
-        private static IPAddress? systemIPAddress = null;
-        private static IPEndPoint? ipEndPoint = null;
-        private bool disposedValue;
+        private static ProtocolType _protocolType;
+        private static SocketType _socketType;
+        private static IPAddress? _systemIPAddress = null;
+        private static IPEndPoint? _ipEndPoint = null;
+        private bool _disposedValue;
         public static event EventHandler<GeneralExceptionEventArgs>? RaiseGeneralExceptionEvent;
         private static GeneralExceptionEventArgs? _generalEventArgs;
+        private static readonly byte[]? _internalBuffer = new byte[14] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public SocketAdapter()
+        public TCPAdapter()
         {
         }
 
@@ -31,9 +33,10 @@ namespace PASMBTCP.IO
         /// Properties
         /// </summary>
         public static string IpAddress { get; set; } = "127.0.0.1"; // Default Value.
-        public static int Port { get; set; }
-        public static int ConnectTImeout { get; set; }
-        public static int ReadWriteTimeout { get; set; }
+        public static int Port { get; set; } = 502; // Default Value.
+        public static int ConnectTimeout { get; set; } = 60000; // Default Value.
+        public static int ReadWriteTimeout { get; set; } = 60000; // Default Value.
+        public static Client Client { get; set; }
 
         /// <summary>
         /// Formats Date Time With Culture Info
@@ -54,20 +57,20 @@ namespace PASMBTCP.IO
         public async ValueTask ConnectAsync()
         {
             // Set Socket And Protocol Type
-            socketType = SocketType.Stream;
-            protocolType = ProtocolType.Tcp;
+            _socketType = SocketType.Stream;
+            _protocolType = ProtocolType.Tcp;
 
             try
             {
                 // 
-                systemIPAddress = IPAddress.Parse(IpAddress);
-                ipEndPoint = new IPEndPoint(systemIPAddress, Port);
-                _socket = new Socket(ipEndPoint.AddressFamily, socketType, protocolType);
+                _systemIPAddress = IPAddress.Parse(Client.IPAddress);
+                _ipEndPoint = new IPEndPoint(_systemIPAddress, Client.Port);
+                _socket = new Socket(_ipEndPoint.AddressFamily, _socketType, _protocolType);
 
-                using CancellationTokenSource cts = new(ConnectTImeout);
+                using CancellationTokenSource cts = new(Client.ConnectTimeout);
                 using (cts.Token.Register(() => _socket.Close()))
                 {
-                    await SocketTaskExtensions.ConnectAsync(_socket, ipEndPoint, cts.Token);
+                    await SocketTaskExtensions.ConnectAsync(_socket, _ipEndPoint, cts.Token);
 
                 }
             }
@@ -91,7 +94,7 @@ namespace PASMBTCP.IO
             {
                 try
                 {
-                    using CancellationTokenSource cts = new(ReadWriteTimeout);
+                    using CancellationTokenSource cts = new(Client.ReadWriteTimeout);
                     using (cts.Token.Register(() => _socket.Close()))
                     {
                         await SocketTaskExtensions.SendAsync(_socket, buffer, SocketFlags.None, cts.Token);
@@ -113,16 +116,14 @@ namespace PASMBTCP.IO
         /// <returns>ValueTask byte[]</returns>
         public async ValueTask<byte[]> ReceiveDataAsync()
         {
-            byte[] dummyBuffer = { 0,0,0,0,0,0,0,0,0,0,0,0 };
             if (_socket != null)
             {
                 try
                 {
-                    using CancellationTokenSource cts = new(ReadWriteTimeout);
+                    using CancellationTokenSource cts = new(Client.ReadWriteTimeout);
                     using (cts.Token.Register(() => _socket.Close()))
                     {
-                        byte[] internalBuffer = new byte[1024];
-                        Memory<byte> buffer = new(internalBuffer);
+                        Memory<byte> buffer = new(_internalBuffer);
                         int len = await SocketTaskExtensions.ReceiveAsync(_socket, buffer, SocketFlags.None, cts.Token);
                         return buffer.Slice(0, len).ToArray();
                     }
@@ -131,10 +132,10 @@ namespace PASMBTCP.IO
                 {
                     _generalEventArgs = new(GetDateTime(), new Exception(ex.Message, ex.InnerException).ToString());
                     RaiseGeneralExceptionEvent?.Invoke(this, _generalEventArgs);
-                    return dummyBuffer;
+                    return _internalBuffer;
                 }
             }
-            else { return dummyBuffer; }
+            else { return _internalBuffer; }
         }
 
         /// <summary>
@@ -152,18 +153,17 @@ namespace PASMBTCP.IO
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
                     _socket?.Dispose();
-                    Console.WriteLine("Socket Disposed");
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
