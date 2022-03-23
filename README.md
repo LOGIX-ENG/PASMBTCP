@@ -12,8 +12,8 @@ This version only reads from remote devices and places the data into a local SQL
 ### Capabilities:
 
 #### Modbus Specific to the End Device.
-These Are The Available Registers In A Typical Modbus Device
-Please Refer To Your Devices Manual For Details About Data Structures And Register Addresses
+These Are The Available Registers In A Typical Modbus Device.
+Please Refer To Your Devices Manual For Details About Data Structures And Register Addresses.
 
 | Function Code | Function Name | Address Range |
 |----------|----------|----------|
@@ -24,10 +24,9 @@ Please Refer To Your Devices Manual For Details About Data Structures And Regist
 
 
 #### Typical Addressing by the User.
-This is the Addressing you will use when creating a Tag.
-These Are The Most Used Data Types
-Please Refer To Your Devices Manual For Details About Data Structures You Have Available
-**Info** Enter Your Register Address As Show In The Table Below 
+Below are the Addressing and Data Types you will use when creating a Tag.
+Please Refer To Your Devices Manual For Details About Data Structures You Have Available.
+**Info** Enter Your Register Address As Show In The Table Below.
 
 | Function Code | Function Name | Address Range | Data Types |
 |----------|----------|----------|----------|
@@ -48,18 +47,26 @@ Please Refer To Your Devices Manual For Details About Data Structures You Have A
 */
 /// <summary>
 /// Create Device You Wish To Poll
-/// This Device Is Inserted To The *Client* Table In The App Database
+/// This Client Is Inserted To The Client Table In The App Database
+/// Demonstrated Here Is Insert New Client, Update Client, Delete Client and Delete All Clients
 /// Input A (String)Name, (String)IP Address, (INT)Port #, (INT)Connection (INT)Timeout and (INT)Read/Write Timeout
 /// </summary>
-await Device.CreateClient("Client", "192.168.1.1", 2502, 60000, 60000);
+await ClientController.CreateClient("Client", "192.168.1.1", 502, 60000, 60000);
+await ClientController.UpdateClientAsync("Client", "192.168.1.100", 502, 10000, 20000);
+await ClientController.DeleteSingleClientAsync("Client");
+await ClientController.DeleteAllClientsAsync();
 
 /// <summary>
 /// Create A Tag
 /// This Tag Will Be Inserted Into A Table Called *(Client)_Tag* In The App Database.
 /// If This Table Does Not Exist It Will Be Created.
+/// Demonstrated Here Is Insert New Tag, Update Tag, Delete Tag and Delete All Tags Associated With A Specific Client
 /// Input A (String)Name, (String)Register Address, (String)Data Type and What (String)Client It Belongs To
 /// </summary>
-await DataTagCreator.CreateTag("Example", "400001", "Float", "Client");
+await DataTagController.CreateTag("Example", "400001", "Float", "Client");
+await DataTagController.UpdateTagAsync("Example", "400001", "Float", "Client");
+await DataTagController.DeleteSingleTagAsync("Client", "Example");
+await DataTagController.DeleteAllTagsAsync("Client");
 
 /// <summary>
 /// This Option Polls Every Client And Every Tag
@@ -79,12 +86,23 @@ await PollingEngine.PollSingleDeviceAsync("Client");
 /// Must Be Same As (String)Client And (String)Tag You Created
 /// </summary>
 await PollingEngine.PollSingleTagAsync("Client", "Example");
+
+/// <summary>
+/// The Database Controller Handles Generic Funcitons
+/// Returns All Table Names In The Database
+/// </summary>
+IEnumerable<string> tables = await DatabaseController.GetAllTables();
+
+/// <summary>
+/// Drops A Table
+/// </summary>
+await DatabaseController.DropTable("Table Name");
 ```
 #### TO DO:
-    -[] Add Delete Single Client
-    -[] Add Delete All Clients
-    -[] Add Delete Single Tag
-    -[] Add Delete All Tags
+    -[X] Add Delete Single Client
+    -[X] Add Delete All Clients
+    -[X] Add Delete Single Tag
+    -[X] Add Delete All Tags
     -[] Add Drop Client Table
     -[] Add Drop Tag Table
     -[] Add Get All Tables In Database

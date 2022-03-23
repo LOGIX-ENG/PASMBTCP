@@ -9,15 +9,15 @@ namespace PASMBTCP.Utility
         public static string SqliteConnectionString = $@"Data Source = {path}\AppDataDB.db;";
 
         /// <summary>
-        /// Builds The SQLite Command For Table Creation
+        /// Builds The SQLite Command For Modbus Tag Table Creation
         /// </summary>
         /// <returns>String</returns>
-        public static string ModbusTagTableCreator(string client)
+        public static string ModbusTagTableCreator(string clientName)
         {
             StringBuilder createTagTable = new();
             try
             {
-                createTagTable.Append($@"CREATE TABLE IF NOT EXISTS {client}_Tag(");
+                createTagTable.Append($@"CREATE TABLE IF NOT EXISTS {clientName}_Tag(");
                 createTagTable.Append("Id INTEGER NOT NULL UNIQUE, ");
                 createTagTable.Append("Name VARCHAR NOT NULL UNIQUE, ");
                 createTagTable.Append("DataType VARCHAR(10) NOT NULL, ");
@@ -35,6 +35,11 @@ namespace PASMBTCP.Utility
             return createTagTable.ToString();
         }
 
+        /// <summary>
+        /// Builds The SQLite Command For The Client Table Creation
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static string ModbusClientTableCreator()
         {
             StringBuilder createClientTable = new();
@@ -59,7 +64,7 @@ namespace PASMBTCP.Utility
         }
 
         /// <summary>
-        /// Builds The SQLite Command For Table Creation
+        /// Builds The SQLite Command For The Error Table Creation
         /// </summary>
         /// <returns>String</returns>
         public static string ModbusErrorTableCreator()
@@ -86,12 +91,12 @@ namespace PASMBTCP.Utility
         /// Builds The SQLite Command For Inserting Tag Into The Tag Table
         /// </summary>
         /// <returns>String</returns>
-        public static string InsertTagIntoTable(string client)
+        public static string InsertTagIntoTable(string clientName)
         {
             StringBuilder insertTag = new();
             try
             {
-                insertTag.Append($@"INSERT INTO {client}_Tag");
+                insertTag.Append($@"INSERT INTO {clientName}_Tag");
                 insertTag.Append(@"(Name, DataType, Value, ModbusRequest, ClientName) ");
                 insertTag.Append(@"VALUES");
                 insertTag.Append(@"(@Name, @DataType, @Value, @ModbusRequest, @ClientName);");
@@ -106,18 +111,18 @@ namespace PASMBTCP.Utility
         }
 
         /// <summary>
-        /// Builds The SQLite Command For Inserting Tag Into The Tag Table
+        /// Builds The SQLite Command For Inserting A Client Into The Client Table
         /// </summary>
         /// <returns>String</returns>
         public static string InsertClientIntoTable()
         {
-            StringBuilder insertTag = new();
+            StringBuilder insertClient = new();
             try
             {
-                insertTag.Append($@"INSERT INTO Client");
-                insertTag.Append(@"(Name, IPAddress, Port, ConnectTimeout, ReadWriteTimeout) ");
-                insertTag.Append(@"VALUES");
-                insertTag.Append(@"(@Name, @IPAddress, @Port, @ConnectTimeout, @ReadWriteTimeout);");
+                insertClient.Append($@"INSERT INTO Client");
+                insertClient.Append(@"(Name, IPAddress, Port, ConnectTimeout, ReadWriteTimeout) ");
+                insertClient.Append(@"VALUES");
+                insertClient.Append(@"(@Name, @IPAddress, @Port, @ConnectTimeout, @ReadWriteTimeout);");
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -125,11 +130,11 @@ namespace PASMBTCP.Utility
                 throw new ArgumentOutOfRangeException(ex.Message, ex.InnerException);
             }
 
-            return insertTag.ToString();
+            return insertClient.ToString();
         }
 
         /// <summary>
-        /// Builds The SQLite Comand For Inserting Erors Into The Error Table
+        /// Builds The SQLite Comand For Inserting Errors Into The Error Table
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -138,7 +143,7 @@ namespace PASMBTCP.Utility
             StringBuilder insertTag = new();
             try
             {
-                insertTag.Append(@"INSERT INTO ERROR");
+                insertTag.Append(@"INSERT INTO Error");
                 insertTag.Append(@"(TimeOfException, ExceptionMessage) ");
                 insertTag.Append(@"VALUES");
                 insertTag.Append(@"(@TimeOfException, @ExceptionMessage);");
@@ -157,15 +162,15 @@ namespace PASMBTCP.Utility
         /// </summary>
         /// <returns>String</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static string UpdateTagTable(string client)
+        public static string UpdateTagTable(string clientName)
         {
             StringBuilder updateTag = new();
             try
             {
-                updateTag.Append($@"UPDATE {client}_Tag ");
+                updateTag.Append($@"UPDATE {clientName}_Tag ");
                 updateTag.Append(@"SET ");
                 updateTag.Append(@"Value = @Value ");
-                updateTag.Append(@"WHERE Name = @Name; ");
+                updateTag.Append(@"WHERE Name = @Name;");
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -177,16 +182,44 @@ namespace PASMBTCP.Utility
         }
 
         /// <summary>
+        /// Update Single Entry
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static string UpdateClientTable()
+        {
+            StringBuilder updateClient = new();
+            try
+            {
+                updateClient.Append($@"UPDATE Device");
+                updateClient.Append(@"SET ");
+                updateClient.Append(@"Name = @Name ");
+                updateClient.Append(@"IPAddress = @IPAddress ");
+                updateClient.Append(@"Port = @Port ");
+                updateClient.Append(@"ConnectTimeout = @ConnectTimeout ");
+                updateClient.Append(@"ReadWriteTimeout = @ReadWriteTimeout ");
+                updateClient.Append(@"WHERE Name = @Name;");
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+
+                throw new ArgumentOutOfRangeException(ex.Message, ex.InnerException);
+            }
+
+            return updateClient.ToString();
+        }
+
+        /// <summary>
         /// Delete Single Tag
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static string DeleteTagFromTable(string input)
+        public static string DeleteTagFromTable(string clientName, string tagName)
         {
             StringBuilder deleteTag = new();
-            deleteTag.Append($@"DELETE FROM {input}_Tag");
+            deleteTag.Append($@"DELETE FROM {clientName}_Tag");
             deleteTag.Append(@"WHERE ");
-            deleteTag.Append(@"Name = @Name");
+            deleteTag.Append($@"{tagName} = @Name;");
             return deleteTag.ToString();
         }
 
@@ -195,13 +228,48 @@ namespace PASMBTCP.Utility
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static string DeleteClientFromTable(string input)
+        public static string DeleteClientFromTable(string clientName)
         {
             StringBuilder deleteClient = new();
-            deleteClient.Append($@"DELETE FROM {input}");
+            deleteClient.Append(@"DELETE FROM Client");
             deleteClient.Append(@"WHERE ");
-            deleteClient.Append(@"Name = @Name");
+            deleteClient.Append($@"{clientName} = @Name;");
             return deleteClient.ToString();
+        }
+
+        /// <summary>
+        /// Delete All Tags For A Specific Client
+        /// </summary>
+        /// <returns></returns>
+        public static string DeleteAllTags(string clientName)
+        {
+            StringBuilder deleteAllTags = new();
+            deleteAllTags.Append($@"DELETE FROM {clientName}_Tag;");
+            return deleteAllTags.ToString();
+        }
+
+        /// <summary>
+        /// Delete All Clients
+        /// </summary>
+        /// <returns></returns>
+        public static string DeleteAllClients()
+        {
+            StringBuilder deleteAllClients = new();
+            deleteAllClients.Append(@"DELETE FROM Device;");
+            return deleteAllClients.ToString();
+        }
+
+        /// <summary>
+        /// Get All Tables In Database
+        /// </summary>
+        /// <returns></returns>
+        public static string GetAllTables()
+        {
+            StringBuilder allTables = new();
+            allTables.Append(@"SELECT name FROM sqlite_master");
+            allTables.Append(@"WHERE type='table'");
+            allTables.Append(@"ORDER BY name;");
+            return allTables.ToString();
         }
     }
 }

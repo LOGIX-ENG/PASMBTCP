@@ -4,11 +4,6 @@ using PASMBTCP.IO;
 using PASMBTCP.SQLite;
 using PASMBTCP.Tag;
 using PASMBTCP.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PASMBTCP.Polling
 {
@@ -17,8 +12,8 @@ namespace PASMBTCP.Polling
         /// <summary>
         /// Priavte Variables
         /// </summary>
-        private static readonly ModbusDatabase _mbDatabase = new();
-        private static readonly ClientDatabase _clientDatabase = new();
+        private static readonly TagTable _mbDatabase = new();
+        private static readonly ClientTable _clientDatabase = new();
         private static readonly DataValidation<DataTag> _validation = new();
         private static readonly Converter<DataTag> _convert = new();
         private static readonly TCPAdapter _tcpAdapter = new();
@@ -26,16 +21,16 @@ namespace PASMBTCP.Polling
 
 
         /// <summary>
-        /// Poll All Servers
+        /// Poll All Clients
         /// </summary>
         /// <returns></returns>
         public static async Task PollAllDevicesAsync()
         {
             // Raise The Exeption If Errors Occur
-            ModbusDatabase.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
-            ModbusDatabase.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
-            ClientDatabase.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
-            ClientDatabase.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
+            TagTable.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
+            TagTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            ClientTable.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
+            ClientTable.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
 
             // Get All Clients
             IEnumerable<Client> clients = await _clientDatabase.GetAllAsync("All");
@@ -76,18 +71,18 @@ namespace PASMBTCP.Polling
         /// <summary>
         /// Polls All Tags In A Single Device
         /// </summary>
-        /// <param name="device"></param>
+        /// <param name="deviceName"></param>
         /// <returns></returns>
-        public static async Task PollSingleDeviceAsync(string device)
+        public static async Task PollSingleDeviceAsync(string deviceName)
         {
             // Raise The Exeption If Errors Occur
-            ModbusDatabase.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
-            ModbusDatabase.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
-            ClientDatabase.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
-            ClientDatabase.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
+            TagTable.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
+            TagTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            ClientTable.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
+            ClientTable.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
 
             // Get All Clients
-            IEnumerable<Client> client = await _clientDatabase.GetSingleAsync(device);
+            IEnumerable<Client> client = await _clientDatabase.GetSingleAsync(deviceName);
 
             // Raise The Exception If Connection Fails
             TCPAdapter.RaiseGeneralExceptionEvent += SocketAdapter_RaiseGeneralExceptionEvent;
@@ -128,10 +123,10 @@ namespace PASMBTCP.Polling
         public static async Task PollSingleTagAsync(string deviceName, string tagName)
         {
             // Raise The Exeption If Errors Occur
-            ModbusDatabase.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
-            ModbusDatabase.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
-            ClientDatabase.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
-            ClientDatabase.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
+            TagTable.RaiseGeneralExceptionEvent += ModbusDatabase_RaiseGeneralExceptionEvent;
+            TagTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            ClientTable.RaiseGeneralExceptionEvent += ClientDatabase_RaiseGeneralExceptionEvent;
+            ClientTable.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
 
             // Get All Clients
             IEnumerable<Client> client = await _clientDatabase.GetSingleAsync(deviceName);
@@ -139,8 +134,6 @@ namespace PASMBTCP.Polling
             // Raise The Exception If Connection Fails
             TCPAdapter.RaiseGeneralExceptionEvent += SocketAdapter_RaiseGeneralExceptionEvent;
 
-            // List of Polled Tags
-            List<DataTag> value = new();
 
             // Initialize The Client
             TCPAdapter.Client = client.ElementAt(0);

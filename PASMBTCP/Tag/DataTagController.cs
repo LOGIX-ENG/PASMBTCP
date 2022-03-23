@@ -6,13 +6,15 @@ using System.Text.RegularExpressions;
 
 namespace PASMBTCP.Tag
 {
-    public static class DataTagCreator
+    public static class DataTagController
     {
         /// <summary>
         /// Priavate Variables
         /// </summary>
-        private static readonly ModbusDatabase _database = new();
+        private static readonly TagTable _database = new();
         private static readonly ErrorTag _errorTag = new();
+        private static readonly DataTag _dataTag = new();
+        private static readonly ModbusMessage _message = new();
         private static string _pattern = String.Empty;
         private static string _splitString = String.Empty;
         private static string[]? _cleanString;
@@ -26,55 +28,51 @@ namespace PASMBTCP.Tag
         /// <param name="dataType"></param>
         /// <param name="server"></param>
         /// <returns>Awaitable Task</returns>
-        public static async Task CreateTag(string name, string registerAddress, string dataType, string server)
-        {
-            // Initialize DataTag and ModbusMessage
-            DataTag dataTag = new();
-            ModbusMessage message = new();
-
+        public static async Task CreateTag(string name, string registerAddress, string dataType, string clientName)
+        { 
             // Assign Values
-            dataTag.Name = name;
-            message.RegisterAddress = dataTag.RegisterAddress = (ushort)(GetRegisterAddress(registerAddress) - 1);
-            message.UnitId = 1;
-            message.FunctionCode = dataTag.FunctionCode = GetFunctionCode(registerAddress);
-            dataTag.ClientName = server;
+            _dataTag.Name = name;
+            _message.RegisterAddress = (ushort)(GetRegisterAddress(registerAddress) - 1);
+            _message.UnitId = 1;
+            _message.FunctionCode = GetFunctionCode(registerAddress);
+            _dataTag.ClientName = clientName;
 
             // Switch on DataType
             switch (dataType)
             {
                 case "Short":
-                    message.Quantity = 1;
-                    message.TransactionId = ModbusUtility.ShortCode;
+                    _message.Quantity = 1;
+                    _message.TransactionId = ModbusUtility.ShortCode;
                     break;
                 case "Float":
-                    message.Quantity = 2;
-                    message.TransactionId = ModbusUtility.FloatCode;
+                    _message.Quantity = 2;
+                    _message.TransactionId = ModbusUtility.FloatCode;
                     break;
                 case "Long":
-                    message.Quantity = 2;
-                    message.TransactionId = ModbusUtility.LongCode;
+                    _message.Quantity = 2;
+                    _message.TransactionId = ModbusUtility.LongCode;
                     break;
                 case "Bool":
-                    message.Quantity = 1;
-                    message.TransactionId = ModbusUtility.BoolCode;
+                    _message.Quantity = 1;
+                    _message.TransactionId = ModbusUtility.BoolCode;
                     break;
                 default:
                     break;
             }
 
             // Assign Values
-            dataTag.DataType = dataType;
+            _dataTag.DataType = dataType;
 
             // Modbus Request Is Created Only Once Per Tag.
             // It Is Created Only When Tag Is Created
             // And Inserted Into The Database.
-            dataTag.ModbusRequest = message.Frame;
+            _dataTag.ModbusRequest = _message.Frame;
 
             // Raise Database Exception
-            ModbusDatabase.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            TagTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
 
             // Insert Tag Into Database.
-            await _database.InsertSingleAsync(dataTag);
+            await _database.InsertSingleAsync(_dataTag);
         }
 
         /// <summary>
@@ -168,6 +166,83 @@ namespace PASMBTCP.Tag
             }
             // Else, Return Safe Function Code.
             else { return 1; }
+        }
+
+        /// <summary>
+        /// Delete A Single Tag From The Table
+        /// </summary>
+        /// <param name="clientName"></param>
+        /// <returns></returns>
+        public static async Task DeleteSingleTagAsync(string clientName, string tagName)
+        {
+            // Raise Database Exception
+            ClientTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            await _database.DeleteSingleAsync(clientName, tagName);
+        }
+
+        /// <summary>
+        /// Delete All Tags From The Table
+        /// </summary>
+        /// <returns></returns>
+        public static async Task DeleteAllTagsAsync(string clientName)
+        {
+            // Raise Database Exception
+            ClientTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+            await _database.DeleteAllAsync(clientName);
+        }
+
+        /// <summary>
+        /// Update Single Tag In Table
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="registerAddress"></param>
+        /// <param name="dataType"></param>
+        /// <param name="clientName"></param>
+        /// <returns></returns>
+        public static async Task UpdateTagAsync(string name, string registerAddress, string dataType, string clientName)
+        {
+            // Assign Values
+            _dataTag.Name = name;
+            _message.RegisterAddress = (ushort)(GetRegisterAddress(registerAddress) - 1);
+            _message.UnitId = 1;
+            _message.FunctionCode = GetFunctionCode(registerAddress);
+            _dataTag.ClientName = clientName;
+
+            // Switch on DataType
+            switch (dataType)
+            {
+                case "Short":
+                    _message.Quantity = 1;
+                    _message.TransactionId = ModbusUtility.ShortCode;
+                    break;
+                case "Float":
+                    _message.Quantity = 2;
+                    _message.TransactionId = ModbusUtility.FloatCode;
+                    break;
+                case "Long":
+                    _message.Quantity = 2;
+                    _message.TransactionId = ModbusUtility.LongCode;
+                    break;
+                case "Bool":
+                    _message.Quantity = 1;
+                    _message.TransactionId = ModbusUtility.BoolCode;
+                    break;
+                default:
+                    break;
+            }
+
+            // Assign Values
+            _dataTag.DataType = dataType;
+
+            // Modbus Request Is Created Only Once Per Tag.
+            // It Is Created Only When Tag Is Created
+            // And Inserted Into The Database.
+            _dataTag.ModbusRequest = _message.Frame;
+            
+            // Raise Database Exception
+            ClientTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
+           
+            await _database.UpdateSingleAsync(_dataTag);
         }
 
         /// <summary>

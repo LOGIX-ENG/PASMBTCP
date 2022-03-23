@@ -19,7 +19,7 @@ namespace PASMBTCP.Tag
         private static DataTag dataTag = Activator.CreateInstance<T>();
         private static SlaveException? _slaveException;
         private static ModbusExceptionsEventArgs _args = new();
-        private static ModbusDatabase _database = new();
+        private static TagTable _database = new();
 
         /// <summary>
         /// Constructor

@@ -10,7 +10,6 @@ namespace PASMBTCP.Tag
         public byte[] ModbusRequest { get; set; } = Array.Empty<byte>();
         public byte[] ModbusResponse { get; set; } = Array.Empty<byte>();
         public string? Name { get; set; } = null;
-        public ushort RegisterAddress { get; set; }
         public string? Value { get; set; } = null;
         public string? ClientName { get; set; } = null;
     }

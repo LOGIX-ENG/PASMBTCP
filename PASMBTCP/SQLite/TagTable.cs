@@ -6,10 +6,9 @@ using PASMBTCP.Utility;
 using System.Data;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 namespace PASMBTCP.SQLite
 {
-    public class ModbusDatabase : DBOBase<DataTag>
+    public class TagTable : DBOBase<DataTag>
     {
         /// <summary>
         /// Private Variables
@@ -23,7 +22,7 @@ namespace PASMBTCP.SQLite
         /// <summary>
         /// Constructor
         /// </summary>
-        public ModbusDatabase()
+        public TagTable()
         {
         }
 
@@ -41,17 +40,17 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Delete Row From Database
+        /// Delete Row From Table
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
-        public override async Task DeleteSingleAsync(DataTag Entity)
+        public async Task DeleteSingleAsync(string deviceName, string tagName)
         {
             using IDbConnection connection = SqlConnection();
-            string command = DatabaseUtility.DeleteTagFromTable(Entity.Name);
+            string command = DatabaseUtility.DeleteTagFromTable(deviceName, tagName);
             try
             {
-                await connection.ExecuteAsync(command, Entity);
+                await connection.ExecuteAsync(command);
             }
             catch (SqliteException ex)
             {
@@ -61,37 +60,35 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Gets All Rows In The Database
+        /// Delete All Tags In Table
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public async Task DeleteAllAsync(string clientName)
+        {
+            using IDbConnection connection = SqlConnection();
+            string command = DatabaseUtility.DeleteAllTags(clientName);
+            try
+            {
+                await connection.ExecuteAsync(command);
+            }
+            catch (SqliteException ex)
+            {
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+            }
+        }
+
+        /// <summary>
+        /// Gets All Rows In The Table
         /// </summary>
         /// <returns>IEnumerable of DataTag</returns>
-        public override async Task<IEnumerable<DataTag>> GetAllAsync(string input)
+        public override async Task<IEnumerable<DataTag>> GetAllAsync(string clientName)
         {
             using IDbConnection connection = SqlConnection();
             try
             {
-                string sqlQuery = $@"SELECT * FROM {input}_Tag";
-                // IEnumerable<Client> result = await connection.QueryAsync<Client>(sqlQuery, new DynamicParameters());
-                return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters()); // result.AsParallel<Client>();
-            }
-            catch (SqliteException ex)
-            {
-
-                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
-                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
-                return Enumerable.Empty<DataTag>();
-            }
-        }
-
-        /// <summary>
-        /// Gets Single In The Database
-        /// </summary>
-        /// <returns>IEnumerable of Client</returns>
-        public async Task<IEnumerable<DataTag>> GetSingleAsync(string deviceName, string tagName)
-        {
-            using IDbConnection connection = SqlConnection();
-            try
-            {
-                string sqlQuery = $@"SELECT {tagName} FROM {deviceName}_Tag";
+                string sqlQuery = $@"SELECT * FROM {clientName}_Tag";
                 return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters());
             }
             catch (SqliteException ex)
@@ -104,7 +101,28 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Inserts Multiple Items Into The Database
+        /// Gets Single Tag From The Table
+        /// </summary>
+        /// <returns>IEnumerable of Client</returns>
+        public async Task<IEnumerable<DataTag>> GetSingleAsync(string clientName, string tagName)
+        {
+            using IDbConnection connection = SqlConnection();
+            try
+            {
+                string sqlQuery = $@"SELECT {tagName} FROM {clientName}_Tag";
+                return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters());
+            }
+            catch (SqliteException ex)
+            {
+
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+                return Enumerable.Empty<DataTag>();
+            }
+        }
+
+        /// <summary>
+        /// Inserts Multiple Items Into The Table
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns>Task</returns>
@@ -114,8 +132,6 @@ namespace PASMBTCP.SQLite
             await connection.OpenAsync();
 
             IDbTransaction transaction = await connection.BeginTransactionAsync();
-
-            //string command = DatabaseUtility.InsertTagIntoTable();
 
             try
             {
@@ -140,7 +156,7 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Instert Single Item Into The Database
+        /// Instert Single Item Into The Table
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns>Task</returns>
@@ -188,6 +204,8 @@ namespace PASMBTCP.SQLite
                 if (ex.Message.Contains($"no such table: Error"))
                 {
                     _ = await connection.ExecuteAsync(DatabaseUtility.ModbusErrorTableCreator(), errorTag);
+                    await InsertSingleErrorAsync(errorTag);
+                    return;
                 }
             }
         }
@@ -204,7 +222,7 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Update Multiple Rows In The Database
+        /// Update Multiple Rows In The Table
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
@@ -248,7 +266,7 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Update Single Row In The Database
+        /// Update Single Row In The Table
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
@@ -276,6 +294,5 @@ namespace PASMBTCP.SQLite
         {
             return typeof(DataTag).GetProperties();
         }
-
     }
 }

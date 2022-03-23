@@ -6,13 +6,6 @@ namespace PASMBTCP.SQLite
     public interface IDBORepository<T> where T : class
     {
         /// <summary>
-        /// Delete Row
-        /// </summary>
-        /// <param name="Entity"></param>
-        /// <returns></returns>
-        Task DeleteSingleAsync(T Entity);
-
-        /// <summary>
         /// Get All Rows
         /// </summary>
         /// <param name="input"></param>

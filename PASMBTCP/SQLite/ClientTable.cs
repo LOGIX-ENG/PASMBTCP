@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace PASMBTCP.SQLite
 {
-    public class ClientDatabase : DBOBase<Client>
+    public class ClientTable : DBOBase<Client>
     {
         /// <summary>
         /// Private Variables
@@ -33,17 +33,36 @@ namespace PASMBTCP.SQLite
         }
 
         /// <summary>
-        /// Delete Row From Database
+        /// Delete Row From Table
         /// </summary>
         /// <param name="Entity"></param>
         /// <returns></returns>
-        public override async Task DeleteSingleAsync(Client Entity)
+        public async Task DeleteSingleAsync(string clientName)
         {
             using IDbConnection connection = SqlConnection();
-            string command = DatabaseUtility.DeleteClientFromTable(Entity.Name);
+            string command = DatabaseUtility.DeleteClientFromTable(clientName);
             try
             {
-                await connection.ExecuteAsync(command, Entity);
+                await connection.ExecuteAsync(command);
+            }
+            catch (SqliteException ex)
+            {
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+            }
+        }
+
+        /// <summary>
+        /// Delete All From Table
+        /// </summary>
+        /// <returns></returns>
+        public async Task DeleteAllAsync()
+        {
+            using IDbConnection connection = SqlConnection();
+            string command = DatabaseUtility.DeleteAllClients();
+            try
+            {
+                await connection.ExecuteAsync(command);
             }
             catch (SqliteException ex)
             {
@@ -77,12 +96,12 @@ namespace PASMBTCP.SQLite
         /// Gets Single In The Database
         /// </summary>
         /// <returns>IEnumerable of Client</returns>
-        public async Task<IEnumerable<Client>> GetSingleAsync(string input)
+        public async Task<IEnumerable<Client>> GetSingleAsync(string deviceName)
         {
             using IDbConnection connection = SqlConnection();
             try
             {
-                string sqlQuery = $@"SELECT {input} FROM Client";
+                string sqlQuery = $@"SELECT {deviceName} FROM Client";
                 return await connection.QueryAsync<Client>(sqlQuery, new DynamicParameters());
             }
             catch (SqliteException ex)
@@ -209,7 +228,7 @@ namespace PASMBTCP.SQLite
             try
             {
 
-                string command = DatabaseUtility.UpdateTagTable(Entity.Name);
+                string command = DatabaseUtility.UpdateClientTable();
                 await connection.ExecuteAsync(command, Entity);
             }
             catch (SqliteException ex)
@@ -236,10 +255,52 @@ namespace PASMBTCP.SQLite
             catch (SqliteException ex)
             {
 
-                if (ex.Message.Contains($"no such table: ERROR"))
+                if (ex.Message.Contains($"no such table: Error"))
                 {
                     _ = await connection.ExecuteAsync(DatabaseUtility.ModbusErrorTableCreator(), errorTag);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets All Tables In Database
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<string>> GetAllTables()
+        {
+            using IDbConnection connection = SqlConnection();
+            try
+            {
+                string sqlQuery = DatabaseUtility.GetAllTables();
+                return await connection.QueryAsync<string>(sqlQuery, new DynamicParameters());
+            }
+            catch (SqliteException ex)
+            {
+
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        /// <summary>
+        /// Drops Entire Table
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public async Task DropTable(string tableName)
+        {
+            using IDbConnection connection = SqlConnection();
+            try
+            {
+                string command = $@"DROP {tableName}";
+                await connection.ExecuteAsync(command);
+            }
+            catch (SqliteException ex)
+            {
+
+                _databaseEventArgs = new(GetDateTime(), new SqliteException(ex.Message, ex.ErrorCode).ToString());
+                RaiseSQLiteExceptionEvent?.Invoke(this, _databaseEventArgs);
             }
         }
     }
