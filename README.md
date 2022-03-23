@@ -24,9 +24,10 @@ Please Refer To Your Devices Manual For Details About Data Structures And Regist
 
 
 #### Typical Addressing by the User.
-Below are the Addressing and Data Types you will use when creating a Tag.
-Please Refer To Your Devices Manual For Details About Data Structures You Have Available.
-**Info** Enter Your Register Address As Show In The Table Below.
+This is the Addressing you will use when creating a Tag.
+These Are The Most Used Data Types
+Please Refer To Your Devices Manual For Details About Data Structures You Have Available
+**Info** Enter Your Register Address As Show In The Table Below 
 
 | Function Code | Function Name | Address Range | Data Types |
 |----------|----------|----------|----------|
