@@ -40,9 +40,8 @@ using PASMBTCP.Tag;
 /// Demonstrated Here Is Insert New Client, Update Client, Delete Client and Delete All Clients
 /// Input A (String)Name, (String)IP Address, (INT)Port #, (INT)Connection (INT)Timeout and (INT)Read/Write Timeout
 /// </summary>
-await ClientController.CreateClient("Client", "192.168.1.1", 502, 60000, 60000);
-await ClientController.UpdateClientAsync("Client", "192.168.1.100", 502, 10000, 20000);
-await ClientController.DeleteSingleClientAsync("Client");
+await ClientController.CreateClient("Device", "192.168.1.100", 502, 60000, 60000);
+await ClientController.DeleteSingleClientAsync("Device");
 await ClientController.DeleteAllClientsAsync();
 
 /// <summary>
@@ -52,10 +51,9 @@ await ClientController.DeleteAllClientsAsync();
 /// Demonstrated Here Is Insert New Tag, Update Tag, Delete Tag and Delete All Tags Associated With A Specific Client
 /// Input A (String)Name, (String)Register Address, (String)Data Type and What (String)Client It Belongs To
 /// </summary>
-await DataTagController.CreateTag("Example", "400001", "Float", "Client");
-await DataTagController.UpdateTagAsync("Example", "400001", "Float", "Client");
-await DataTagController.DeleteSingleTagAsync("Client", "Example");
-await DataTagController.DeleteAllTagsAsync("Client");
+await DataTagController.CreateTag("Example", "400001", "Float", "Device");
+await DataTagController.DeleteSingleTagAsync("Device", "Example");
+await DataTagController.DeleteAllTagsAsync("Device");
 
 /// <summary>
 /// This Option Polls Every Client And Every Tag
@@ -67,14 +65,14 @@ await PollingEngine.PollAllDevicesAsync();
 /// Must Be Same As (String)Client You Created
 /// This Option Polls All Tags Associated With The Client
 /// </summary>
-await PollingEngine.PollSingleDeviceAsync("Client");
+await PollingEngine.PollSingleDeviceAsync("Device");
 
 /// <summary>
 /// Name The Client You Wish To Poll
 /// Name The Tag You Wish To Poll
 /// Must Be Same As (String)Client And (String)Tag You Created
 /// </summary>
-await PollingEngine.PollSingleTagAsync("Client", "Example");
+await PollingEngine.PollSingleTagAsync("Device", "Example");
 
 /// <summary>
 /// The Database Controller Handles Generic Funcitons
@@ -82,7 +80,12 @@ await PollingEngine.PollSingleTagAsync("Client", "Example");
 /// </summary>
 IEnumerable<string> tables = await DatabaseController.GetAllTables();
 
+foreach (string tableName in tables)
+{
+    Console.WriteLine(tableName);
+}
+
 /// <summary>
 /// Drops A Table
-/// </summary>
-await DatabaseController.DropTable("Table Name");
+/// </ summary >
+await DatabaseController.DropTable("TableName");

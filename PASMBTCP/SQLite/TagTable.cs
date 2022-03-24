@@ -109,7 +109,7 @@ namespace PASMBTCP.SQLite
             using IDbConnection connection = SqlConnection();
             try
             {
-                string sqlQuery = $@"SELECT {tagName} FROM {clientName}_Tag";
+                string sqlQuery = $@"SELECT * FROM {clientName}_Tag WHERE Name = '{tagName}';";
                 return await connection.QueryAsync<DataTag>(sqlQuery, new DynamicParameters());
             }
             catch (SqliteException ex)

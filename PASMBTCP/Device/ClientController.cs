@@ -58,27 +58,6 @@ namespace PASMBTCP.Device
             await _clientTable.DeleteAllAsync();
         }
 
-        /// <summary>
-        /// Update Client In The Table
-        /// </summary>
-        /// <param name="Name"></param>
-        /// <param name="ipAddress"></param>
-        /// <param name="port"></param>
-        /// <param name="connectionTimeout"></param>
-        /// <param name="readWriteTimeout"></param>
-        /// <returns></returns>
-        public static async Task UpdateClientAsync(string Name, string ipAddress, int port, int connectionTimeout, int readWriteTimeout)
-        {
-            _client.Name = Name;
-            _client.IPAddress = ipAddress;
-            _client.Port = port;
-            _client.ConnectTimeout = connectionTimeout;
-            _client.ReadWriteTimeout = readWriteTimeout;
-
-            // Raise Database Exception
-            ClientTable.RaiseSQLiteExceptionEvent += ClientDatabase_RaiseSQLiteExceptionEvent;
-            await _clientTable.UpdateSingleAsync(_client);
-        }
 
         /// <summary>
         /// Modbus Database Exception Event

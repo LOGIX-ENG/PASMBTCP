@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using PASMBTCP.Device;
+using System.Text;
 
 namespace PASMBTCP.Utility
 {
@@ -48,7 +49,7 @@ namespace PASMBTCP.Utility
                 createClientTable.Append($@"CREATE TABLE IF NOT EXISTS Client(");
                 createClientTable.Append("Id INTEGER NOT NULL UNIQUE, ");
                 createClientTable.Append("Name VARCHAR NOT NULL UNIQUE, ");
-                createClientTable.Append("IPAddress VARCHAR NOT NULL, ");
+                createClientTable.Append("IPAddress VARCHAR NOT NULL UNIQUE, ");
                 createClientTable.Append("Port INT NOT NULL, ");
                 createClientTable.Append("ConnectTimeout INT NOT NULL, ");
                 createClientTable.Append("ReadWriteTimeout INT NOT NULL, ");
@@ -182,6 +183,34 @@ namespace PASMBTCP.Utility
         }
 
         /// <summary>
+        /// Update Single Tag From User
+        /// </summary>
+        /// <param name="clientName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static string UpdateTagFromUser(string clientName)
+        {
+            StringBuilder updateTagFromUser = new();
+            try
+            {
+                updateTagFromUser.Append($@"UPDATE {clientName}_Tag ");
+                updateTagFromUser.Append(@"SET ");
+                updateTagFromUser.Append(@"Name = @Name, ");
+                updateTagFromUser.Append(@"DataType = @DataType, ");
+                updateTagFromUser.Append(@"ModbusRequest = @ModbusRequest, ");
+                updateTagFromUser.Append(@"ClientName = @ClientName ");
+                updateTagFromUser.Append(@"WHERE ClientName = @ClientName;");
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+
+                throw new ArgumentOutOfRangeException(ex.Message, ex.InnerException);
+            }
+
+            return updateTagFromUser.ToString();
+        }
+
+        /// <summary>
         /// Update Single Entry
         /// </summary>
         /// <returns></returns>
@@ -191,14 +220,15 @@ namespace PASMBTCP.Utility
             StringBuilder updateClient = new();
             try
             {
-                updateClient.Append($@"UPDATE Device");
+                updateClient.Append($@"UPDATE Client ");
                 updateClient.Append(@"SET ");
-                updateClient.Append(@"Name = @Name ");
-                updateClient.Append(@"IPAddress = @IPAddress ");
-                updateClient.Append(@"Port = @Port ");
-                updateClient.Append(@"ConnectTimeout = @ConnectTimeout ");
+                updateClient.Append(@"Name = @Name, ");
+                updateClient.Append(@"IPAddress = @IPAddress, ");
+                updateClient.Append(@"Port = @Port, ");
+                updateClient.Append(@"ConnectTimeout = @ConnectTimeout, ");
                 updateClient.Append(@"ReadWriteTimeout = @ReadWriteTimeout ");
-                updateClient.Append(@"WHERE Name = @Name;");
+                updateClient.Append(@"WHERE Name = @Name ");
+                updateClient.Append(@"OR IPAddress = @IPAddress;");
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -217,9 +247,9 @@ namespace PASMBTCP.Utility
         public static string DeleteTagFromTable(string clientName, string tagName)
         {
             StringBuilder deleteTag = new();
-            deleteTag.Append($@"DELETE FROM {clientName}_Tag");
+            deleteTag.Append($@"DELETE FROM {clientName}_Tag ");
             deleteTag.Append(@"WHERE ");
-            deleteTag.Append($@"{tagName} = @Name;");
+            deleteTag.Append($@"Name = '{tagName}';");
             return deleteTag.ToString();
         }
 
@@ -231,9 +261,9 @@ namespace PASMBTCP.Utility
         public static string DeleteClientFromTable(string clientName)
         {
             StringBuilder deleteClient = new();
-            deleteClient.Append(@"DELETE FROM Client");
+            deleteClient.Append(@"DELETE FROM Client ");
             deleteClient.Append(@"WHERE ");
-            deleteClient.Append($@"{clientName} = @Name;");
+            deleteClient.Append($@"Name = '{clientName}';");
             return deleteClient.ToString();
         }
 
@@ -255,7 +285,7 @@ namespace PASMBTCP.Utility
         public static string DeleteAllClients()
         {
             StringBuilder deleteAllClients = new();
-            deleteAllClients.Append(@"DELETE FROM Device;");
+            deleteAllClients.Append(@"DELETE FROM Client;");
             return deleteAllClients.ToString();
         }
 
@@ -266,10 +296,32 @@ namespace PASMBTCP.Utility
         public static string GetAllTables()
         {
             StringBuilder allTables = new();
-            allTables.Append(@"SELECT name FROM sqlite_master");
-            allTables.Append(@"WHERE type='table'");
+            allTables.Append(@"SELECT name FROM sqlite_master ");
+            allTables.Append(@"WHERE type='table' ");
             allTables.Append(@"ORDER BY name;");
             return allTables.ToString();
+        }
+
+        /// <summary>
+        /// Alter Tag Table Name
+        /// </summary>
+        /// <returns></returns>
+        public static string AlterTagTableName(string deviceName, string oldDeviceName)
+        {
+            StringBuilder alterTagTableName = new();
+            alterTagTableName.Append($@"ALTER TABLE {oldDeviceName}_Tag ");
+            alterTagTableName.Append($@"RENAME TO {deviceName}_Tag;");
+            return alterTagTableName.ToString();
+        }
+
+
+        public static string GetSingleClient(string deviceName)
+        {
+            StringBuilder getSingleClient = new();
+            getSingleClient.Append($@"SELECT * ");
+            getSingleClient.Append($@"FROM Client ");
+            getSingleClient.Append($@"WHERE Name = '{deviceName}';");
+            return getSingleClient.ToString();
         }
     }
 }

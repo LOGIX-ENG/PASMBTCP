@@ -191,59 +191,6 @@ namespace PASMBTCP.Tag
             await _database.DeleteAllAsync(clientName);
         }
 
-        /// <summary>
-        /// Update Single Tag In Table
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="registerAddress"></param>
-        /// <param name="dataType"></param>
-        /// <param name="clientName"></param>
-        /// <returns></returns>
-        public static async Task UpdateTagAsync(string name, string registerAddress, string dataType, string clientName)
-        {
-            // Assign Values
-            _dataTag.Name = name;
-            _message.RegisterAddress = (ushort)(GetRegisterAddress(registerAddress) - 1);
-            _message.UnitId = 1;
-            _message.FunctionCode = GetFunctionCode(registerAddress);
-            _dataTag.ClientName = clientName;
-
-            // Switch on DataType
-            switch (dataType)
-            {
-                case "Short":
-                    _message.Quantity = 1;
-                    _message.TransactionId = ModbusUtility.ShortCode;
-                    break;
-                case "Float":
-                    _message.Quantity = 2;
-                    _message.TransactionId = ModbusUtility.FloatCode;
-                    break;
-                case "Long":
-                    _message.Quantity = 2;
-                    _message.TransactionId = ModbusUtility.LongCode;
-                    break;
-                case "Bool":
-                    _message.Quantity = 1;
-                    _message.TransactionId = ModbusUtility.BoolCode;
-                    break;
-                default:
-                    break;
-            }
-
-            // Assign Values
-            _dataTag.DataType = dataType;
-
-            // Modbus Request Is Created Only Once Per Tag.
-            // It Is Created Only When Tag Is Created
-            // And Inserted Into The Database.
-            _dataTag.ModbusRequest = _message.Frame;
-            
-            // Raise Database Exception
-            ClientTable.RaiseSQLiteExceptionEvent += ModbusDatabase_RaiseSQLiteExceptionEvent;
-           
-            await _database.UpdateSingleAsync(_dataTag);
-        }
 
         /// <summary>
         /// Modbus Database Exception Event

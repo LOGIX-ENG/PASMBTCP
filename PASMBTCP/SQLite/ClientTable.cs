@@ -101,7 +101,7 @@ namespace PASMBTCP.SQLite
             using IDbConnection connection = SqlConnection();
             try
             {
-                string sqlQuery = $@"SELECT {deviceName} FROM Client";
+                string sqlQuery = DatabaseUtility.GetSingleClient(deviceName);
                 return await connection.QueryAsync<Client>(sqlQuery, new DynamicParameters());
             }
             catch (SqliteException ex)
@@ -191,7 +191,7 @@ namespace PASMBTCP.SQLite
 
                 foreach (Client data in Entity)
                 {
-                    string command = DatabaseUtility.UpdateTagTable(data.Name);
+                    string command = DatabaseUtility.UpdateClientTable();
                     await connection.ExecuteAsync(command, data);
                 }
                 try
@@ -293,7 +293,7 @@ namespace PASMBTCP.SQLite
             using IDbConnection connection = SqlConnection();
             try
             {
-                string command = $@"DROP {tableName}";
+                string command = $@"DROP TABLE {tableName};";
                 await connection.ExecuteAsync(command);
             }
             catch (SqliteException ex)
