@@ -40,7 +40,7 @@ using PASMBTCP.Tag;
 /// Demonstrated Here Is Insert New Client, Update Client, Delete Client and Delete All Clients
 /// Input A (String)Name, (String)IP Address, (INT)Port #, (INT)Connection (INT)Timeout and (INT)Read/Write Timeout
 /// </summary>
-await ClientController.CreateClient("Device", "192.168.1.100", 502, 60000, 60000);
+await ClientController.CreateClient("Device", "192.168.1.1", 502, 60000, 60000);
 await ClientController.DeleteSingleClientAsync("Device");
 await ClientController.DeleteAllClientsAsync();
 
@@ -89,3 +89,6 @@ foreach (string tableName in tables)
 /// Drops A Table
 /// </ summary >
 await DatabaseController.DropTable("TableName");
+
+
+

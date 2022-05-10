@@ -78,7 +78,7 @@ namespace PASMBTCP.Tag
             catch (Exception ex)
             {
                 _args = new(GetDateTime(), new Exception(ex.Message, ex.InnerException).ToString());
-                RaiseGeneralExceptionEvent?.Invoke(this, _args);     
+                RaiseGeneralExceptionEvent?.Invoke(this, _args);
             }
 
             return dataTag;
@@ -92,6 +92,7 @@ namespace PASMBTCP.Tag
         public DataTag LongValue(DataTag data)
         {
             dataTag = data;
+
             try
             {
                 int convertedValue = BitConverter.ToInt32(dataTag.ModbusResponse, _startIndex);
@@ -113,7 +114,6 @@ namespace PASMBTCP.Tag
         /// <returns>DataTag</returns>
         public DataTag Realvalue(DataTag data)
         {
-
             dataTag = data;
 
             List<short> output = new();

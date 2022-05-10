@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PASMBTCP", "PASMBTCP\PASMBTCP.csproj", "{14CC0AAC-A55E-4DF1-AD20-77202B2EFBB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleUI", "ExampleUI\ExampleUI.csproj", "{CCEA5530-2452-451D-A375-5E9AA1554011}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleUI", "ExampleUI\ExampleUI.csproj", "{CCEA5530-2452-451D-A375-5E9AA1554011}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

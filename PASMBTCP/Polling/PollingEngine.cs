@@ -42,7 +42,7 @@ namespace PASMBTCP.Polling
             List<DataTag> value = new();
 
             // Iterate Over Each Client
-            foreach(Client client in clients)
+            foreach (Client client in clients)
             {
                 // Initialize The Client
                 TCPAdapter.Client = client;
